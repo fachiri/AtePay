@@ -20,6 +20,7 @@ import SplashScreen from './screen/SplashScreen'
 import ResetPinScreen from './screen/ResetPinScreen'
 import NotificationScreen from './screen/NotificationScreen'
 import NotificationDetailScreen from './screen/NotificationDetailScreen'
+import ProductDetailScreen from './screen/ProductDetailScreen'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { checkToken } from './helper/middleware'
 
@@ -131,7 +132,27 @@ const App = ({ navigation }) => {
         <Stack.Screen name="Security" component={SecurityScreen} options={headerOption('Keamanan')} />
         <Stack.Screen name="Topup" component={TopupScreen} options={headerOption('Topup')} />
         <Stack.Screen name="PaymentDetail" component={PaymentDetailScreen} options={headerOption('Detail Pembayaran')} />
-        <Stack.Screen name="BrowserView" component={BrowserViewScreen} options={headerOption('Browser')} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={headerOption('Rincian Produk')} />
+        <Stack.Screen name="BrowserView" component={BrowserViewScreen} options={{
+          headerTitle: (props) => (
+            <Text
+              {...props}
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: '#FFFFFF'
+              }}
+            >
+              Browser
+            </Text>
+          ),
+          headerTintColor: 'white',
+          headerStyle: {
+            backgroundColor: '#48C239',
+          },
+          headerTitleAlign: 'center',
+          headerBackVisible: false
+        }} />
         <Stack.Screen name="Notification" component={NotificationScreen} options={headerOption('Notifikasi')} />
         <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} options={headerOption('Detail Notifikasi')} />
 

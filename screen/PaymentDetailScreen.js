@@ -40,7 +40,10 @@ const PaymentDetailScreen = ({ navigation }) => {
               </View>
               <View style={{ paddingHorizontal: 20, paddingVertical: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text>Metode</Text>
-                <Text>{bill.payment.sender_bank_type.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} ({bill.payment.sender_bank.toUpperCase()})</Text>
+                { bill.payment.sender_bank_type ? 
+                  <Text>{bill.payment.sender_bank_type.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} ({bill.payment.sender_bank.toUpperCase()})</Text>
+                  : <Text>-</Text>
+                }
               </View>
               
               <View style={{ paddingHorizontal: 20, paddingVertical: 15, flexDirection: 'row', justifyContent: 'space-between' }}>

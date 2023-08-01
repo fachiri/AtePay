@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ATEPAY",
-    "slug": "atepay",
+    "slug": "AtePay",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#48C239"
       },
-      "package": "com.fachiri.atepay"
+      "package": "com.fachiri.AtePay"
     },
     "web": {
       "favicon": "./assets/favicon.png"

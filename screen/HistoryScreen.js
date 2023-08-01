@@ -100,7 +100,7 @@ const HistoryScreen = ({ navigation }) => {
       </View>
     ))
   ) : (
-    <View style={[styles.card, { paddingHorizontal: 20, paddingVertical: 15 }]}>
+    <View style={[styles.card, { paddingHorizontal: 20, paddingVertical: 25 }]}>
       <Text style={{ textAlign: 'center' }}>Riwayat tidak ditemukan!</Text>
     </View>
   );

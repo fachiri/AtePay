@@ -1,174 +1,93 @@
 import * as React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_URL, URL, REDIRECT_URL } from '../env';
+import axios from "axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
-const ProductScreen = () => {
+const ProductScreen = ({ navigation }) => {
+  const isFocused = useIsFocused();
+  const [isPressed, setIsPressed] = React.useState(0);
+  const [user, setuser] = React.useState({});
+  const [token, setToken] = React.useState('');
+  const [products, setProducts] = React.useState([]);
+  const [isScreenLoading, setIsScreenLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setIsScreenLoading(true);
+    getData().finally(() => setRefreshing(false));
+  }, []);
+
+  React.useEffect(() => {
+    setIsScreenLoading(true);
+    if (isFocused) {
+      getData();
+    }
+  }, [isFocused]);
+
+  const getData = async () => {
+    try {
+      const dataUser = await AsyncStorage.getItem('user');
+      const token = await AsyncStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get(`${URL}/${API_URL}/products`, config);
+      setProducts(response.data.data)
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsScreenLoading(false);
+    }
+  };
+
+  if (isScreenLoading) {
+    return (
+      <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#48C239" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={{ flex: 1, alignItems: 'center', padding: 15 }}>
-        <View style={styles.card}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 20 }}>HARIAN</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/pulsa.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Pulsa</Text>
+          {products.length > 0 ? products.map((product, index) => (
+            product.brands.length > 0 ?
+              <View key={index} style={styles.card}>
+                <Text style={{ fontWeight: 'bold', marginBottom: 20, fontSize: 15 }}>{product.category}</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {product.brands.map((brand, brandIndex) => (
+                    <Pressable
+                      key={brandIndex}
+                      onPress={() => navigation.navigate('ProductDetail', { brand, categoryId: product.id })}
+                      style={{ alignItems: 'center', marginBottom: 20, width: '25%' }}
+                    >
+                      <Image
+                        style={{ width: 30, height: 30, marginBottom: 10 }}
+                        source={require('../assets/products/dana.png')}
+                      />
+                      <Text style={{ fontWeight: 'semibold', textAlign: 'center', fontSize: 13 }} numberOfLines={2}>{brand}</Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/pulsadata.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Data</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/listrik.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Listrik</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/dompetdigital.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Dompet</Text>
-              </View>
+            : ''
+          )) : (
+            <View style={[styles.card, { paddingHorizontal: 20, paddingVertical: 25 }]}>
+              <Text style={{ textAlign: 'center' }}>Produk tidak ditemukan!</Text>
             </View>
-          </View>
-          <View style={styles.card}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 20 }}>E-MONEY</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/dana.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Dana</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/linkaja.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Link Aja</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/ovo.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>OVO</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/more.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Lainnya</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.card}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 20 }}>VOUCHER</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/dana.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Wifi ID</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/spotify.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Spotify</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/playstore.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Google Play</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/more.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Lainnya</Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.card}>
-            <Text style={{ fontWeight: 'bold', marginBottom: 20 }}>GAMES</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/freefire.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Free Fire</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/mlbb.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Mobile Legends</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/pubg.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>PUBGM</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/aov.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Arena of Valor</Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/mlbb.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Lord Mobile</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/pb.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Point Blank</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/cod.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>CODM</Text>
-              </View>
-              <View style={{ alignItems: 'center', marginRight: 20, width: '20%' }}>
-                <Image
-                  style={{ width: 30, height: 30, marginBottom: 15 }}
-                  source={require('../assets/products/more.png')}
-                />
-                <Text style={{ fontWeight: 'semibold', textAlign: 'center' }}>Lainnya</Text>
-              </View>
-            </View>
-          </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -121,7 +121,15 @@ const OtpScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start', backgroundColor: '#48C239', padding: 15 }}>
       <Text style={{ fontSize: 20, color: 'white', fontWeight: 'bold', marginBottom: 30 }}>Kode Verifikasi</Text>
-      { disabled ? <Text style={{ color: 'white', textAlign: 'center', marginBottom: 30 }}>{contact}</Text> : '' }
+      { disabled ? 
+        <View style={{ marginBottom: 30 }}>
+          { contact ?
+            <Text style={{ color: 'white', textAlign: 'center' }}>{contact}</Text> :
+            <ActivityIndicator size="medium" color="#FFF" />
+          }
+        </View> : 
+        ''
+      }
       <View style={{ flexDirection: 'row', marginBottom: 30 }}>
         {[...Array(6)].map((_, index) => (
           <TextInput

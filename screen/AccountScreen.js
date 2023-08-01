@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +12,10 @@ const AccountScreen = () => {
   const [user, setUser] = React.useState({})
   const isFocused = useIsFocused();
   const [isScreenLoading, setIsScreenLoading] = React.useState(true);
+  const [isEditName, setIsEditName] = React.useState(false);
+  const [isEditEmail, setIsEditEmail] = React.useState(false);
+  const [name, setName] = React.useState('')
+  const [email, setEmail] = React.useState('')
 
   React.useEffect(() => {
     if (isFocused) {
@@ -31,10 +35,33 @@ const AccountScreen = () => {
       };
       const user = await axios.get(`${URL}/${API_URL}/user/${id}`, config)
       setUser(user.data.data)
+      setName(user.name)
     } catch (error) {
       console.log(error)
     } finally {
       setIsScreenLoading(false);
+    }
+  }
+
+  const handleChange = async (payload) => {
+    try {
+      const token = await AsyncStorage.getItem('token')
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+      await axios.put(`${URL}/${API_URL}/user/${user.id}`, {
+        payload
+      }, config)
+      Alert.alert('Berhasil', 'Data Berhasil diubah!');
+    } catch (error) {
+      console.log(error.response || error)
+      Alert.alert('Gagal', 'Terjadi Kesalahan!');
+    } finally {
+      setIsEditName(false)
+      setIsEditEmail(false)
+      getData();
     }
   }
 
@@ -59,12 +86,30 @@ const AccountScreen = () => {
                   styles.pressable,
                   isPressed == 1 && styles.pressableActive,
                 ]}
+                onPress={() => setIsEditName(!isEditName)}
               >
-                <View style={{ flexDirection: 'column' }}>
-                  <Text style={{ fontSize: 12, color: '#9e9e9e' }}>Nama Lengkap</Text>
-                  <Text style={{ fontSize: 15 }}>{user.name}</Text>
+                <View style={{ flex:1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex:1, flexDirection: 'column' }}>
+                    <Text style={{ fontSize: 12, color: '#9e9e9e', marginBottom: 5 }}>Nama Lengkap</Text>
+                    { isEditName ?
+                      <TextInput
+                        style={{ fontSize: 15, borderBottomWidth: 1, borderBottomColor: '#6e6e6e', backgroundColor: '#f7f7f7' }}
+                        onChangeText={setName}
+                        value={name}
+                        autoFocus={isEditName ?? false}
+                      />
+                      :
+                      <Text style={{ fontSize: 15 }}>{user.name}</Text>
+                    }
+                  </View>
+                  { isEditName ? 
+                  <Pressable
+                    style={{ paddingHorizontal: 10, paddingVertical: 10, backgroundColor: '#48C239', borderRadius: 5, marginLeft: 20 }}
+                    onPress={() => handleChange ({name})}
+                  >
+                      <FontAwesome5 name={'save'} size={20} color='#FFF'/>
+                  </Pressable> : '' }
                 </View>
-                {/* <FontAwesome5 name={'chevron-right'} size={20} color='#48C239'/> */}
               </Pressable>
               <Pressable 
                 onPressIn={() => { setIsPressed(2) }}
@@ -73,12 +118,29 @@ const AccountScreen = () => {
                   styles.pressable,
                   isPressed == 2 && styles.pressableActive,
                 ]}
+                onPress={() => setIsEditEmail(!isEditEmail)}
               >
-                <View style={{ flexDirection: 'column' }}>
-                  <Text style={{ fontSize: 12, color: '#9e9e9e' }}>Email</Text>
-                  <Text style={{ fontSize: 15 }}>{user.email}</Text>
-                </View>
-                {/* <FontAwesome5 name={'chevron-right'} size={20} color='#48C239'/> */}
+                <View style={{ flex:1, flexDirection: 'column' }}>
+                    <Text style={{ fontSize: 12, color: '#9e9e9e', marginBottom: 5 }}>Email</Text>
+                    { isEditEmail ?
+                      <TextInput
+                        style={{ fontSize: 15, borderBottomWidth: 1, borderBottomColor: '#6e6e6e', backgroundColor: '#f7f7f7', textTransform: 'lowercase' }}
+                        onChangeText={setEmail}
+                        keyboardType='email-address'
+                        value={email}
+                        autoFocus={isEditEmail ?? false}
+                      />
+                      :
+                      <Text style={{ fontSize: 15 }}>{user.email}</Text>
+                    }
+                  </View>
+                  { isEditEmail ? 
+                  <Pressable
+                    style={{ paddingHorizontal: 10, paddingVertical: 10, backgroundColor: '#48C239', borderRadius: 5, marginLeft: 20 }}
+                    onPress={() => handleChange ({email})}
+                  >
+                      <FontAwesome5 name={'save'} size={20} color='#FFF'/>
+                  </Pressable> : '' }
               </Pressable>
               <Pressable 
                 onPressIn={() => { setIsPressed(3) }}
@@ -89,7 +151,7 @@ const AccountScreen = () => {
                 ]}
               >
                 <View style={{ flexDirection: 'column' }}>
-                  <Text style={{ fontSize: 12, color: '#9e9e9e' }}>No. HP</Text>
+                  <Text style={{ fontSize: 12, color: '#9e9e9e', marginBottom: 5 }}>No. HP</Text>
                   <Text style={{ fontSize: 15 }}>{user.phone}</Text>
                 </View>
                 <FontAwesome5 name={'chevron-right'} size={20} color='#48C239'/>
