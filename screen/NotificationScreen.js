@@ -6,23 +6,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { API_URL, URL } from '@env';
 import { useIsFocused } from '@react-navigation/native';
-import { getIDR } from '../helper/numberFormat'
+import { getDate } from '../helper/dateFormat'
 
-const Amount = ({amount}) => {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Text style={{ fontSize: 12, color: '#888888' }}>Rp</Text>
-      <Text style={{ fontSize: 15, fontWeight: '500' }}>{getIDR(amount).replace(/Rp/g, "")}</Text>
-    </View>
-  );
-}
-
-const HistoryScreen = ({ navigation }) => {
+const NotificationScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [isPressed, setIsPressed] = React.useState(0);
   const [user, setuser] = React.useState({});
   const [token, setToken] = React.useState('');
-  const [bills, setBills] = React.useState([]);
+  const [notifs, setNotifs] = React.useState([]);
   const [isScreenLoading, setIsScreenLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -43,14 +34,15 @@ const HistoryScreen = ({ navigation }) => {
     try {
       const dataUser = await AsyncStorage.getItem('user');
       const token = await AsyncStorage.getItem('token');
-      setuser(JSON.parse(dataUser));
+      setToken(token)
+      // setuser()
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`${URL}/${API_URL}/payment/my-bills?user_id=${JSON.parse(dataUser).id}`, config);
-      setBills(response.data);
+      const response = await axios.get(`${URL}/${API_URL}/notification/${JSON.parse(dataUser).id}`, config);
+      setNotifs(response.data.data);
     } catch (error) {
       console.log(error);
     } finally {
@@ -58,11 +50,18 @@ const HistoryScreen = ({ navigation }) => {
     }
   };
 
-  const getPaymentIcon = (status, type) => {
-    return status === 'PENDING' ? 'hourglass-half' :
-           status === 'FAILED' ? 'times' :
-           status === 'SUCCESSFUL' && type === 'DEBIT' ? 'plus-circle' :
-           status === 'SUCCESSFUL' && type !== 'DEBIT' ? 'minus' : 'question';
+  const handleRead = async (notif) => {
+    if(notif.isRead == 0) {
+      // kalo belum dibaca
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      await axios.put(`${URL}/${API_URL}/notification/${notif.id}`, { payload: { isRead: 1 } } ,config)
+      notif.isRead == 1
+    }
+    navigation.navigate('NotificationDetail', { notif })
   }
 
   if (isScreenLoading) {
@@ -74,34 +73,27 @@ const HistoryScreen = ({ navigation }) => {
   }
 
   // Check if bills is an array before mapping
-  const renderBills = Array.isArray(bills) && bills.length > 0 ? (
-    bills.map((bill, index) => (
+  const renderNotifs = Array.isArray(notifs) && notifs.length > 0 ? (
+    notifs.map((notif, index) => (
       <View key={index} style={styles.card}>
         <Pressable
-          // onPressIn={() => { setIsPressed(index + 1); }}
-          // onPressOut={() => { setIsPressed(0); }}
-          style={[
-            styles.pressable,
-            isPressed === index + 1 && styles.pressableActive,
-          ]}
-          onPress={() => navigation.navigate('PaymentDetail', { bill })}
+          style={{ paddingHorizontal: 20, paddingVertical: 15, flexDirection: 'row' }}
+          onPress={() => handleRead(notif)}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ borderWidth: 1, borderColor: '#48C239', borderRadius: 5, paddingVertical: 4, width: 30 }}>
-              <FontAwesome5 name={getPaymentIcon(bill.payment.status, bill.payment.type)} size={18} color='#48C239' style={{ textAlign: 'center' }} />
-            </View>
-            <View style={{ flexDirection: 'column', marginLeft: 15 }}>
-              <Text style={{ fontSize: 12, color: '#9e9e9e' }}>{bill.title}</Text>
-              <Text style={{ fontSize: 13 }}>{ bill.payment ? bill.payment.status : bill.status}</Text>
-            </View>
+          <FontAwesome5 name={notif.isRead == 1 ? 'envelope-open' : 'envelope'} size={25} color='#48C239'/>
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={{ fontWeight: '700', marginBottom: 3 }}>{notif.title}</Text>
+            <Text style={{ marginBottom: 3 }} numberOfLines={2} ellipsizeMode="tail">{notif.body}</Text>
+            <Text style={{ color: '#858585', fontSize: 12 }}>
+              {getDate(notif.createdAt)}
+            </Text>
           </View>
-          <Amount amount={bill.amount} />
         </Pressable>
       </View>
     ))
   ) : (
     <View style={[styles.card, { paddingHorizontal: 20, paddingVertical: 15 }]}>
-      <Text style={{ textAlign: 'center' }}>Riwayat tidak ditemukan!</Text>
+      <Text style={{ textAlign: 'center' }}>Notifikasi tidak ditemukan!</Text>
     </View>
   );
 
@@ -113,8 +105,8 @@ const HistoryScreen = ({ navigation }) => {
         }
       >
         <View style={{ flex: 1, alignItems: 'stretch' }}>
-          <View style={{ marginHorizontal: 15, marginTop: 15 }}>
-            {renderBills}
+          <View style={{ marginHorizontal: 15 }}>
+            {renderNotifs}
           </View>
         </View>
       </ScrollView>
@@ -137,19 +129,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     marginBottom: 10,
     overflow: 'hidden',
-  },
-  pressable: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eeeeee',
-  },
-  pressableActive: {
-    backgroundColor: '#00000010',
-  },
+  }
 });
 
-export default HistoryScreen;
+export default NotificationScreen;

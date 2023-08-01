@@ -2,7 +2,7 @@ import * as React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const HomeScreen = () => {
+const ProductScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
@@ -193,4 +193,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen
+export default ProductScreen
