@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL, URL } from '@env';
+import { API_URL, URL } from '../env';
 import { useRoute } from '@react-navigation/native';
 
 const OtpScreen = ({ navigation }) => {

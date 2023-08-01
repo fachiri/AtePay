@@ -5,7 +5,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { ImageSlider } from "react-native-image-slider-banner";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import { API_URL, URL } from '@env';
+import { API_URL, URL } from '../env';
 import axios from "axios";
 import { getIDR } from '../helper/numberFormat'
 import { getGreeting } from '../helper/dateFormat'

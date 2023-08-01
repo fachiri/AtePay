@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handleBackPress } from '../helper/backHandler';
-import { API_URL, URL } from '@env';
+import { API_URL, URL } from '../env';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = React.useState('');
@@ -33,15 +33,17 @@ const LoginScreen = ({ navigation }) => {
       return Alert.alert('Kesalahan', 'Isi form dengan benar!')
     }
     try {
+      console.log(`--- post ${URL}/${API_URL}/auth/signin ---`)
       const res = await axios.post(`${URL}/${API_URL}/auth/signin`, {
         email,
         password
       })
+      console.log(res)
       // await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
       setIsLoading(false)
       navigation.navigate('Otp', { from: 'Login', data: res.data.user });
     } catch (error) {
-      console.log(error)
+      console.log(error.response || error);
       Alert.alert('Gagal', error.response.data.message)
       setIsLoading(false)
     }

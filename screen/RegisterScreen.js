@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { View, Text, TextInput, Pressable, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { API_URL, URL } from '@env';
+import { API_URL, URL } from '../env';
 import axios from "axios";
 
 const RegisterScreen = ({ navigation }) => {

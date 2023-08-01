@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import { API_URL, URL } from '@env';
+import { API_URL, URL } from '../env';
 import axios from "axios";
 import * as ImagePicker from 'expo-image-picker';
 

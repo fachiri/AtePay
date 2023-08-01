@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
-import { API_URL, URL, REDIRECT_URL } from '@env';
+import { API_URL, URL } from '../env';
 import { getDateTimeOneDayAhead } from '../helper/dateFormat'
 import axios from "axios";
 
