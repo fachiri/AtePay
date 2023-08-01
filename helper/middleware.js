@@ -4,7 +4,7 @@ import { API_URL, URL, REDIRECT_URL } from '../env';
 
 export const checkToken = async () => {
   try {
-    console.log('--- checkToken() ---')
+    console.log('--- checkToken()')
     const token = await AsyncStorage.getItem('token');
     if (!token) {
       throw new Error('Token not found!')

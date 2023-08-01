@@ -1,71 +1,55 @@
 import * as React from 'react';
-import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ActivityIndicator, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL, URL } from '../env';
 import { useRoute } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 
 const OtpScreen = ({ navigation }) => {
   const [otp, setOtp] = React.useState('');
   const [user, setuser] = React.useState({})
-  const [disabled, setDisabled] = React.useState(false)
-  const [countdown, setCountdown] = React.useState(30)
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [contact, setContact] = React.useState('');
+  const [loadingModal, setLoadingModal] = React.useState(false);
   const { from, data } = useRoute().params;
 
   React.useEffect(() => {
     getData()
-    let timer = null;
-    if (disabled) {
-      timer = setInterval(() => {
-        setCountdown((prevCountdown) => prevCountdown - 1);
-      }, 1000); // setiap 1 detik
-
-      if (countdown <= 0) {
-        setDisabled(false);
-        clearInterval(timer);
-      }
-    }
-
-    return () => clearInterval(timer);
-  }, [disabled, countdown]);
+  }, []);
 
   const getData = async () => {
     const dataUser = await AsyncStorage.getItem('user');
     setuser(JSON.parse(dataUser))
   }
 
-  const sendOtp = async (type) => {
-    if (!disabled) {
+  const handleSendOtp = async (type) => {
+    try {
+      console.log('--- handleSendOtp()')
+      setLoadingModal(true)
       let userContact = `+${data.phone}`
       if (type == 'EMAIL') {
         userContact = data.email
       }
-      setDisabled(true);
       await axios.post(`${URL}/${API_URL}/auth/sendotp`, {
         id: data.id,
         type
       })
-        .then((res) => {
-          setContact(`Kode OTP telah dikirim ke ${type} ${userContact}`)
-          setCountdown(30);
-        })
-        .catch((error) => {
-          console.log(error)
-          Alert.alert('Terjadi Kesalahan', error.response.data.message)
-        })
+      Alert.alert('Sukses', `Kode OTP telah dikirim ke ${type} ${userContact}`)
+    } catch (error) {
+      console.log('--- Error handleSendOtp()', error)
+      Alert.alert('Gagal', error.response?.data?.message || error.message)
+    } finally {
+      setLoadingModal(false)
     }
   }
 
   const handleVerifyOtp = async () => {
-    setIsLoading(true)
-    if (otp.length !== 6) {
-      setIsLoading(false)
-      return Alert.alert('Kesalahan', 'Isi OTP dengan benar!');
-    }
     try {
+      setLoadingModal(true)
+      if (otp.length !== 6) {
+        setLoadingModal(false)
+        throw ({message: 'Isi OTP dengan benar!'});
+      }
       const verifyToken = await axios.post(`${URL}/${API_URL}/auth/verifytoken`, {
         id: data.id,
         code: otp
@@ -95,41 +79,36 @@ const OtpScreen = ({ navigation }) => {
         navigation.navigate('Main');
       }
     } catch (error) {
-      Alert.alert('Gagal', error.message);
+      console.log('--- Error handleVerifyOtp()', error)
+      Alert.alert('Gagal', error.response?.data?.message || error.message)
     } finally {
-      setIsLoading(false)
+      setLoadingModal(false)
     }
   };
 
   const handleOtpChange = (value, index) => {
     const newOtp = [...otp];
     newOtp[index] = value;
-
     if (value && index < 5) {
-      // Pindahkan kursor ke input berikutnya saat diisi
       inputRefs[index + 1].focus();
     } else if (!value && index > 0) {
-      // Kembali ke input sebelumnya saat dihapus
       inputRefs[index - 1].focus();
     }
-
     setOtp(newOtp.join(''));
   };
 
   const inputRefs = [];
 
+  const otpProviders = [
+    { label: 'Kirim OTP', value: '' },
+    { label: 'Email', value: 'EMAIL' },
+    { label: 'SMS', value: 'SMS' },
+    { label: 'Whatsapp', value: 'WHATSAPP' }
+  ]
+
   return (
     <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start', backgroundColor: '#48C239', padding: 15 }}>
       <Text style={{ fontSize: 20, color: 'white', fontWeight: 'bold', marginBottom: 30 }}>Kode Verifikasi</Text>
-      { disabled ? 
-        <View style={{ marginBottom: 30 }}>
-          { contact ?
-            <Text style={{ color: 'white', textAlign: 'center' }}>{contact}</Text> :
-            <ActivityIndicator size="medium" color="#FFF" />
-          }
-        </View> : 
-        ''
-      }
       <View style={{ flexDirection: 'row', marginBottom: 30 }}>
         {[...Array(6)].map((_, index) => (
           <TextInput
@@ -143,35 +122,59 @@ const OtpScreen = ({ navigation }) => {
           />
         ))}
       </View>
+      
+        <View style={{ width: 300, marginBottom: 15, borderRadius: 10, backgroundColor: 'white' }}>
+          <Picker
+            onValueChange={(itemValue) => handleSendOtp(itemValue)}
+          >
+            {otpProviders.map((otpProvider, index) => (
+              <Picker.Item key={index} label={otpProvider.label} value={otpProvider.value} style={{ fontSize: 13 }} />
+            ))}
+          </Picker>
+        </View>
       <Pressable 
-        style={{ width: 300, marginBottom: 15, borderRadius: 10, paddingVertical: 10, borderWidth: 2, borderColor: 'white', opacity: disabled ? 0.5 : 1 }}
-        disabled={disabled}
-        onPress={() => sendOtp('SMS')}
-      >
-        <Text style={{ fontWeight: 'bold', color: 'white', textAlign: 'center' }}>{ disabled ? countdown : 'Kirim OTP via SMS' }</Text>
-      </Pressable>
-      <Pressable 
-        style={{ width: 300, marginBottom: 15, borderRadius: 10, paddingVertical: 10, borderWidth: 2, borderColor: 'white', opacity: disabled ? 0.5 : 1 }}
-        disabled={disabled}
-        onPress={() => sendOtp('WHATSAPP')}
-      >
-        <Text style={{ fontWeight: 'bold', color: 'white', textAlign: 'center' }}>{ disabled ? countdown : 'Kirim OTP via WHATSAPP' }</Text>
-      </Pressable>
-      <Pressable 
-        style={{ width: 300, marginBottom: 15, borderRadius: 10, paddingVertical: 10, borderWidth: 2, borderColor: 'white', opacity: disabled ? 0.5 : 1 }}
-        disabled={disabled}
-        onPress={() => sendOtp('EMAIL')}
-      >
-        <Text style={{ fontWeight: 'bold', color: 'white', textAlign: 'center' }}>{ disabled ? countdown : 'Kirim OTP via EMAIL' }</Text>
-      </Pressable>
-      <Pressable 
-        style={{ width: 300, marginBottom: 15, backgroundColor: 'white', borderRadius: 10, paddingVertical: 10 }}
+        style={{ width: 300, marginBottom: 15, backgroundColor: 'white', borderRadius: 10, paddingVertical: 13 }}
         onPress={() => handleVerifyOtp()}
       >
-        { isLoading ? <ActivityIndicator size="small" color="#48C239" /> : <Text style={{ fontWeight: 'bold', color: '#006634', textAlign: 'center' }}>Verifikasi</Text> }
+        <Text style={{ fontWeight: 'bold', color: '#006634', textAlign: 'center', fontSize: 14 }}>Verifikasi</Text>
       </Pressable>
+
+      {/* Modal untuk menampilkan loading indicator */}
+      <Modal visible={loadingModal} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modal}>
+            <ActivityIndicator size="large" color="#ffffff" />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modal: {
+    backgroundColor: '#48C239',
+    padding: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    marginTop: 10,
+  },
+});
 
 export default OtpScreen

@@ -26,25 +26,23 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
-    console.log('--- handleLogin() ---')
+    console.log('--- handleLogin()')
     setIsLoading(true)
     if (email == '' || password == '') {
       setIsLoading(false)
       return Alert.alert('Kesalahan', 'Isi form dengan benar!')
     }
     try {
-      console.log(`--- post ${URL}/${API_URL}/auth/signin ---`)
+      console.log(`--- post ${URL}/${API_URL}/auth/signin`)
       const res = await axios.post(`${URL}/${API_URL}/auth/signin`, {
         email,
         password
       })
-      console.log(res)
-      // await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
       setIsLoading(false)
       navigation.navigate('Otp', { from: 'Login', data: res.data.user });
     } catch (error) {
       console.log(error.response || error);
-      Alert.alert('Gagal', error.response.data.message)
+      Alert.alert('Terjadi Kesalahan', error.response.data.message || error.message)
       setIsLoading(false)
     }
   }
