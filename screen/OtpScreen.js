@@ -9,18 +9,8 @@ import { Picker } from '@react-native-picker/picker';
 
 const OtpScreen = ({ navigation }) => {
   const [otp, setOtp] = React.useState('');
-  const [user, setuser] = React.useState({})
   const [loadingModal, setLoadingModal] = React.useState(false);
   const { from, data } = useRoute().params;
-
-  React.useEffect(() => {
-    getData()
-  }, []);
-
-  const getData = async () => {
-    const dataUser = await AsyncStorage.getItem('user');
-    setuser(JSON.parse(dataUser))
-  }
 
   const handleSendOtp = async (type) => {
     try {
@@ -152,12 +142,6 @@ const OtpScreen = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
