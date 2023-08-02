@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, ImageBackground, ActivityIndicator, Pressable, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, ImageBackground, ActivityIndicator, Pressable, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { ImageSlider } from "react-native-image-slider-banner";
@@ -19,6 +19,13 @@ const HomeScreen = ({navigation}) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [sliders, setSliders] = React.useState([])
   const [greeting, setGreeting] = React.useState('')
+  const [brands, setBrands] = React.useState([])
+  const [sliderWidth, setSliderWidth] = React.useState(0);
+
+  const onSliderLayout = (event) => {
+    const { width } = event.nativeEvent.layout;
+    setSliderWidth(width);
+  };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -52,6 +59,17 @@ const HomeScreen = ({navigation}) => {
         arr_sliders[e.order] = { img: `${URL}/uploads/sliders/${e.name}` }
       });
       setSliders(arr_sliders);
+      if (sliders.data.data == 0) {
+        setSliders([{ img: `${URL}/uploads/sliders/slider-default.png` }]);
+      }
+      const brands = await axios.post(`${URL}/${API_URL}/brands`, {
+        payload: {
+          where: {
+            display: 1
+          }
+        }
+      }, config);
+      setBrands(brands.data.data)
     } catch (error) {
       console.log('Error fetching data:', error);
     } finally {
@@ -106,61 +124,36 @@ const HomeScreen = ({navigation}) => {
           </ImageBackground>
           <View style={{ paddingHorizontal: 15 }}>
             <View style={styles.card}>
-              { sliders.length > 0 ?
-                <View style={{ height, borderRadius: 15, overflow: 'hidden'}}>
-                  <ImageSlider
-                    data={sliders}
-                    autoPlay={true}
-                    closeIconColor="#fff"
-                    timer={5000}
-                    caroselImageStyle={{ borderWidth: 1, resizeMode: 'center' }}
-                    activeIndicatorStyle={{ backgroundColor: '#48C239' }}
-                    indicatorContainerStyle={{ bottom: 0 }}
-                  />
-                </View>
-                : null
-              }
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginVertical: 20 }}>
-                <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <View style={{width: 40, height: 40, borderWidth: 1}}>
-                    <FontAwesome5 name={'mobile-alt'} size={30} style={{ textAlign: 'center' }} />
-                  </View>
-                  <Text style={{ textAlign: 'center' }}>Pulsa & Data</Text>
-                </View>
-                <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <View style={{width: 40, height: 40, borderWidth: 1}}>
-                    <FontAwesome5 name={'lightbulb'} size={30} style={{ textAlign: 'center' }} />
-                  </View>
-                  <Text style={{ textAlign: 'center' }}>Listrik</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'faucet'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Air PAM</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'mobile-alt'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Pulsa & Data</Text>
-                </View>
+            <View 
+              style={{ borderRadius: 15, overflow: 'hidden', marginBottom: 30  }}
+              onLayout={onSliderLayout}
+            >
+              <ImageSlider
+                data={sliders}
+                autoPlay={true}
+                closeIconColor="#fff"
+                timer={5000}
+                caroselImageContainerStyle={{ height }}
+                caroselImageStyle={{ resizeMode: 'cover', height: '100%', width: sliderWidth }}
+                activeIndicatorStyle={{ backgroundColor: '#48C239' }}
+                indicatorContainerStyle={{ bottom: 0 }}
+              />
+            </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {brands.map((brand, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => navigation.navigate('ProductDetail', { id: brand.id })}
+                    style={{ alignItems: 'center', marginBottom: 20, width: '25%' }}
+                  >
+                    <Image
+                      style={{ width: 30, height: 30, marginBottom: 10 }}
+                      source={{ uri: `${URL}/uploads/icons/${brand.icon}` }}
+                    />
+                    <Text style={{ fontWeight: 'semibold', textAlign: 'center', fontSize: 13 }} numberOfLines={2}>{brand.name}</Text>
+                  </Pressable>
+                ))}
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 30 }}>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'lightbulb'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Listrik</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'faucet'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Air PAM</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'faucet'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Air PAM</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'center', width: '20%' }}>
-                  <FontAwesome5 name={'th'} size={30} style={{marginBottom: 10}} />
-                  <Text style={{ textAlign: 'center' }}>Lihat Semua</Text>
-                </View>
-              </View>
-
             </View>
 
           </View>

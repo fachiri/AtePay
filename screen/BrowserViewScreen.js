@@ -18,7 +18,6 @@ const BrowserView = ({ navigation }) => {
     <View style={styles.container}>
       <WebView
         source={{ uri: browserUrl }}
-        onNavigationStateChange={handleNavigationStateChange}
       />
     </View>
   );

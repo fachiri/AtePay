@@ -122,6 +122,7 @@ const App = ({ navigation }) => {
     const handleDeepLink = async (event) => {
       if (event.url.startsWith('atepay://')) {
         const path = event.url.split('atepay://')[1];
+        console.log(path);
         switch (path) {
           case 'riwayat':
             navigation.navigate('Riwayat'); 
