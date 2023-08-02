@@ -45,17 +45,17 @@ const HomeScreen = ({navigation}) => {
         },
       };
       const balance = await axios.get(`${URL}/${API_URL}/payment/my-balance?user_id=${JSON.parse(dataUser).id}`, config);
+      setBalance(balance.data.balance);
       const sliders = await axios.get(`${URL}/${API_URL}/setting/sliders`, config);
       let arr_sliders = []
       sliders.data.data.forEach(e => {
         arr_sliders[e.order] = { img: `${URL}/uploads/sliders/${e.name}` }
       });
-      setBalance(balance.data.balance);
       setSliders(arr_sliders);
-      setGreeting(getGreeting())
     } catch (error) {
       console.log('Error fetching data:', error);
     } finally {
+      setGreeting(getGreeting())
       setIsScreenLoading(false);
     }
   };
@@ -106,18 +106,21 @@ const HomeScreen = ({navigation}) => {
           </ImageBackground>
           <View style={{ paddingHorizontal: 15 }}>
             <View style={styles.card}>
-              <View style={{ height, borderRadius: 15, overflow: 'hidden', marginBottom: 30}}>
-                <ImageSlider
-                  data={sliders}
-                  autoPlay={true}
-                  closeIconColor="#fff"
-                  timer={5000}
-                  caroselImageStyle={{ borderWidth: 1, resizeMode: 'center' }}
-                  activeIndicatorStyle={{ backgroundColor: '#48C239' }}
-                  indicatorContainerStyle={{ bottom: 0 }}
-                />
-              </View>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginBottom: 30 }}>
+              { sliders.length > 0 ?
+                <View style={{ height, borderRadius: 15, overflow: 'hidden'}}>
+                  <ImageSlider
+                    data={sliders}
+                    autoPlay={true}
+                    closeIconColor="#fff"
+                    timer={5000}
+                    caroselImageStyle={{ borderWidth: 1, resizeMode: 'center' }}
+                    activeIndicatorStyle={{ backgroundColor: '#48C239' }}
+                    indicatorContainerStyle={{ bottom: 0 }}
+                  />
+                </View>
+                : null
+              }
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginVertical: 20 }}>
                 <View style={{ flex: 1, flexDirection: 'column', alignItems: 'center', width: '20%' }}>
                   <View style={{width: 40, height: 40, borderWidth: 1}}>
                     <FontAwesome5 name={'mobile-alt'} size={30} style={{ textAlign: 'center' }} />

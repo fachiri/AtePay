@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, TextInput, Pressable, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, Image, Alert, ActivityIndicator, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_URL, URL } from '../env';
 import axios from "axios";
@@ -11,14 +11,15 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = React.useState('');
   const [repeatPassword, setRepeatPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [loadingModal, setLoadingModal] = React.useState(false);
 
   const handleRegister = async () => {
-    setIsLoading(true)
-    if (email == '' || password == '' || name == '' || phone == '' || repeatPassword == '' || password != repeatPassword) {
-      setIsLoading(false)
-      return Alert.alert('Kesalahan', 'Isi form dengan benar!')
-    }
     try {
+      setLoadingModal(true)
+      if (email == '' || password == '' || name == '' || phone == '' || repeatPassword == '' || password != repeatPassword) {
+        setLoadingModal(false)
+        throw ({message: 'Isi form dengan benar!'})
+      }
       const response = await axios.post(`${URL}/${API_URL}/auth/signup`, {
         name,
         email,
@@ -28,8 +29,10 @@ const RegisterScreen = ({ navigation }) => {
       Alert.alert('Berhasil', response.data.message)
       navigation.navigate('Otp', { from: 'Register', data: response.data.data })
     } catch (error) {
-      Alert.alert('Kesalahan', error.response.data.message)
-      setIsLoading(false)
+      console.log('--- Error handleRegister()', error)
+      Alert.alert('Gagal', error.response?.data?.message || error.message)
+    } finally {
+      setLoadingModal(false)
     }
   }
 
@@ -99,14 +102,43 @@ const RegisterScreen = ({ navigation }) => {
           style={{ width: 300, marginBottom: 15, backgroundColor: 'white', borderRadius: 10, paddingVertical: 10 }}
           onPress={handleRegister}
         >
-          { isLoading ? <ActivityIndicator size="small" color="#48C239" /> : <Text style={{ fontWeight: 'bold', color: '#006634', textAlign: 'center' }}>Buat Akun</Text> }
+          <Text style={{ fontWeight: 'bold', color: '#006634', textAlign: 'center' }}>Buat Akun</Text>
         </Pressable>
       </View>
       <Pressable style={{ width: 300, borderWidth: 2, borderColor: 'white', borderRadius: 10, paddingVertical: 8 }} onPress={() => navigation.navigate('Login')}>
         <Text style={{ fontWeight: 'bold', color: 'white', textAlign: 'center' }}>Masuk</Text>
       </Pressable>
+
+      {/* Modal untuk menampilkan loading indicator */}
+      <Modal visible={loadingModal} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modal}>
+            <ActivityIndicator size="large" color="#ffffff" />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modal: {
+    backgroundColor: '#48C239',
+    padding: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    marginTop: 10,
+  },
+});
 
 export default RegisterScreen

@@ -63,21 +63,21 @@ const ProductScreen = ({ navigation }) => {
       >
         <View style={{ flex: 1, alignItems: 'center', padding: 15 }}>
           {products.length > 0 ? products.map((product, index) => (
-            product.brands.length > 0 ?
+            product.categoryBrands.length > 0 ?
               <View key={index} style={styles.card}>
-                <Text style={{ fontWeight: 'bold', marginBottom: 20, fontSize: 15 }}>{product.category}</Text>
+                <Text style={{ fontWeight: 'bold', marginBottom: 20, fontSize: 15 }}>{product.name}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                  {product.brands.map((brand, brandIndex) => (
+                  {product.categoryBrands.map((brand, brandIndex) => (
                     <Pressable
                       key={brandIndex}
-                      onPress={() => navigation.navigate('ProductDetail', { brand, categoryId: product.id })}
+                      onPress={() => navigation.navigate('ProductDetail', { id: brand.id })}
                       style={{ alignItems: 'center', marginBottom: 20, width: '25%' }}
                     >
                       <Image
                         style={{ width: 30, height: 30, marginBottom: 10 }}
-                        source={require('../assets/products/dana.png')}
+                        source={{ uri: `${URL}/uploads/icons/${brand.icon}` }}
                       />
-                      <Text style={{ fontWeight: 'semibold', textAlign: 'center', fontSize: 13 }} numberOfLines={2}>{brand}</Text>
+                      <Text style={{ fontWeight: 'semibold', textAlign: 'center', fontSize: 13 }} numberOfLines={2}>{brand.name}</Text>
                     </Pressable>
                   ))}
                 </View>

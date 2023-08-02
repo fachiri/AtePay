@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator, Modal, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,36 +14,42 @@ const ProductDetailScreen = ({ navigation }) => {
   const [user, setuser] = React.useState({})
   const [selectedProduct, setSelectedProduct] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
-  const { brand, categoryId } = useRoute().params;
+  const { id } = useRoute().params;
   const [products, setProducts] = React.useState([])
+  const [loadingModal, setLoadingModal] = React.useState(false);
 
   React.useEffect(() => {
     getData()
   }, []);
   
   const getData = async () => {
-    const token = await AsyncStorage.getItem('token');
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    const response = await axios.post(`${URL}/${API_URL}/products`, {
-      brand, categoryId
-    }, config);
-    let products = []
-    response.data.data.map((e, i) => {
-      products[i] = {
-        label: e.name,
-        value: e.id
-      }
-    })
-    products.unshift({
-      label: 'Pilih Produk',
-      value: ''
-    })
-    // console.log(JSON.stringify(products, null, 2))
-    setProducts(products)
+    try {
+      setLoadingModal(true)
+      const token = await AsyncStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get(`${URL}/${API_URL}/brand/${id}`, config);
+      let products = []
+      response.data.data.brandProducts.map((e, i) => {
+        products[i] = {
+          label: e.name,
+          value: e.id
+        }
+      })
+      products.unshift({
+        label: 'Pilih Produk',
+        value: ''
+      })
+      // console.log(JSON.stringify(products, null, 2))
+      setProducts(products)
+    } catch (error) {
+      console.log('--- Error getDataBrand()', error.response?.data?.message || error.message)
+    } finally {
+      setLoadingModal(false)
+    }
   }
 
   const handleTopup = async () => {
@@ -105,6 +111,15 @@ const ProductDetailScreen = ({ navigation }) => {
             </Pressable>
           </View>
         </View>
+
+        {/* Modal untuk menampilkan loading indicator */}
+        <Modal visible={loadingModal} transparent animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={styles.modal}>
+              <ActivityIndicator size="large" color="#ffffff" />
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -139,6 +154,23 @@ const styles = StyleSheet.create({
   },
   pressableActive: {
     backgroundColor: '#00000010',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modal: {
+    backgroundColor: '#48C239',
+    padding: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    marginTop: 10,
   },
 });
 
