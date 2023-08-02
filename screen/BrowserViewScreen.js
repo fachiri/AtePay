@@ -7,6 +7,7 @@ import { API_URL, URL, REDIRECT_URL } from '../env';
 
 const BrowserView = ({ navigation }) => {
   const { paymentUrl } = useRoute().params;
+  const [browserUrl, setBrowserUrl] = React.useState(paymentUrl)
 
   React.useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
@@ -16,7 +17,8 @@ const BrowserView = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <WebView
-        source={{ uri: paymentUrl }}
+        source={{ uri: browserUrl }}
+        onNavigationStateChange={handleNavigationStateChange}
       />
     </View>
   );

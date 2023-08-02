@@ -23,6 +23,7 @@ import NotificationDetailScreen from './screen/NotificationDetailScreen'
 import ProductDetailScreen from './screen/ProductDetailScreen'
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { checkToken } from './helper/middleware'
+import { Linking } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -118,6 +119,20 @@ const App = ({ navigation }) => {
 
   useEffect(() => {
     getUserToken();
+    const handleDeepLink = async (event) => {
+      if (event.url.startsWith('atepay://')) {
+        const path = event.url.split('atepay://')[1];
+        switch (path) {
+          case 'riwayat':
+            navigation.navigate('Riwayat'); 
+            break;
+        }
+      }
+    };
+    Linking.addEventListener('url', handleDeepLink);
+    return () => {
+      Linking.removeEventListener('url', handleDeepLink);
+    };
   }, []);
 
   if (isLoading) {
